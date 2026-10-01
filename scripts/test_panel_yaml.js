@@ -67,7 +67,7 @@ check('pain_points.scenes 6 项',
 
 console.log('\n[3] 深层嵌套');
 check('llm.models.gemini 值正确',
-  cfg.llm.models.gemini === 'gemini-2.0-flash', cfg.llm.models.gemini);
+  cfg.llm.models.gemini === 'gemini-3.8-flash', cfg.llm.models.gemini);
 check('llm.temperature = 0.7',
   cfg.llm.temperature === 0.7, String(cfg.llm.temperature));
 check('runtime.log_level = INFO',
@@ -91,7 +91,7 @@ check('往返后 time_slot 仍是字符串',
 check('往返后 items_per_category = 8',
   reparsed.tasks.ai_daily.items_per_category === 8);
 check('往返后 llm.models 完整',
-  reparsed.llm.models.gemini === 'gemini-2.0-flash' &&
+  reparsed.llm.models.gemini === 'gemini-3.8-flash' &&
   reparsed.llm.models.deepseek === 'deepseek-chat');
 
 console.log('\n[5] 修改后重新序列化');
