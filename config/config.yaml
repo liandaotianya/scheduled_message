@@ -70,7 +70,7 @@ llm:
   primary: gemini                 # 主通道：gemini / deepseek
   fallback: deepseek              # 兜底通道，主通道失败/超限时自动切换
   temperature: 0.7
-  max_retries: 2                  # 每个通道的重试次数
+  max_retries: 4                  # 每个通道的重试次数（应对临时高负载 503）
   timeout: 180                    # 单次请求超时（秒）
   models:
     gemini: "gemini-3.8-flash"

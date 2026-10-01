@@ -1,0 +1,109 @@
+HANDOFF — 项目交接说明（给新会话的 AI）
+
+本文档用于跨会话/跨设备接续开发。新会话开始时，请先完整阅读本文档， 不要向用户重复询问已明确的事项。
+
+一、项目是什么
+
+三个定时任务原来跑在 Coze 上（每天赠送 1500 积分，近两个月积分不够用导致任务失败）， 现已迁移为 GitHub Actions + 免费 LLM + 静态管理面板 方案，全部代码已完成开发并通过验证。
+
+三个任务（触发规则必须精确保留，是业务核心）：
+
+任务
+
+触发规则
+
+时间
+
+交付
+
+长春薅羊毛活动收集
+
+每月双号，排除 16/30 号
+
+23:23
+
+HTML 邮件
+
+AI 日报
+
+每月单号，排除 7/23 号
+
+23:37
+
+HTML 邮件 + 仓库存档
+
+用户痛点快报
+
+每月 7/16/23/30 号
+
+23:37
+
+HTML 邮件
+
+收件人：986882896@qq.com
+
+执行成功不额外通知，邮件本身就是通知
+
+技术选型（用户逐项确认过）：GitHub Actions 托管执行 / Gemini 免费档主 + DeepSeek 兜底 / 静态面板调 GitHub API（部署在 GitHub Pages）/ 抓取先做稳定公开源，强反爬平台留插件位
+
+二、目录地图
+
+三、当前进度与验证状态
+
+已完成：
+
+全部代码：调度、任务、LLM 双通道、抓取、模板、发信、期数计数、面板
+
+验证 56 项全通过：调度逻辑 89 天全对（test_schedule.py）、端到端 21 项（test_e2e.py）、 面板 YAML 往返 26+9 项（test_panel_yaml.js）
+
+面板已在开发环境预览确认
+
+进行中（用户手工操作环节）：
+
+推送到 GitHub（曾遇到 master 无 upstream 报错，已给出 git branch -M main + git push -u origin main，结果待确认）
+
+配置 3 个 Secrets：MAIL_AUTH_CODE / GEMINI_API_KEY / DEEPSEEK_API_KEY
+
+开启 Pages（Settings → Pages → Source 选 GitHub Actions）
+
+首次手动触发验证（面板或 Actions 页面 Run workflow，建议先勾 dry_run 试跑）
+
+四、关键技术约定（改动前必读）
+
+发信内联强制规则：HTML 正文必须以字符串内联传给 mailer.send()， 严禁"写文件再传路径"——原 Coze 方案的教训，mailer.py 会主动拒绝路径形态的正文。
+
+cron 是 UTC：北京时间减 8 小时。23:23 → 23 15 * * *，23:37 → 37 15 * * *。
+
+面板只认 main 分支：pages.yml 的触发分支是 main，本地仓库分支必须保持 main。
+
+期号三处一致：文件名 / 邮件标题 / 邮件主题 必须同含期号，issue_no.py 有自检。
+
+薅羊毛大标题禁止出现具体日期（模板 deals.html.j2 有注释说明）。
+
+LLM 提示词里 JSON 字段说明不要用英文双引号嵌套（会破坏 Python 字符串或 JSON 示例）， 中文语境用「直角引号」。
+
+插件位约定：scripts/core/plugins/<module>.py 暴露 fetch(keyword, limit) -> List[dict]， 然后在 sources.yaml 把 enabled 改 true。
+
+五、协作偏好（用户既定习惯）
+
+改完代码：AI 只整理 commit message，不执行 git commit/push，由用户自己提交。 commit message 按业务功能分段，不附文件名/方法名/框架名。
+
+出方案：先给实现思路，用户对照评价后再动手；推荐选项要附依据。
+
+输出偏好：高精简度、结构化表格、✅/⚠️ 区分、可操作清单。
+
+用户会以截图方式反馈 UI/界面问题，按红框标注定位。
+
+不自动执行破坏性操作（回滚、删除、发布），先问再做。
+
+六、本地验证命令
+
+七、后续可做（按需，非承诺）
+
+小红书/知乎等插件位实现（需要用户侧提供抓取通道/代理）
+
+面板增加「期数计数查看/修正」区块
+
+邮件发送成功率监控（Actions 失败时 PushNotification）
+
+多收件人/分组订阅
