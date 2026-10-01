@@ -1,0 +1,92 @@
+# ============================================================
+#  抓取源清单
+#  type 说明：
+#    rss     —— RSS / Atom 订阅（最稳，优先用）
+#    api     —— 公开 JSON 接口
+#    html    —— 网页解析（兜底，易受改版影响）
+#    plugin  —— 插件位，需自行实现模块后启用
+#  enabled: false 的源不参与抓取
+# ============================================================
+
+sources:
+
+  # ---------- 给 AI 日报用：科技 / 资讯 ----------
+  36kr:
+    type: rss
+    enabled: true
+    url: "https://36kr.com/feed"
+    tags: [其他优质资讯]
+
+  少数派:
+    type: rss
+    enabled: true
+    url: "https://sspai.com/feed"
+    tags: [其他优质资讯, 提高开发效率的工具]
+
+  InfoQ中文:
+    type: rss
+    enabled: true
+    url: "https://www.infoq.cn/feed"
+    tags: [其他优质资讯]
+
+  HackerNews:
+    type: api
+    enabled: true
+    # 官方 Firebase API，取 topstories 前 30 条
+    url: "https://hacker-news.firebaseio.com/v0/topstories.json"
+    item_url: "https://hacker-news.firebaseio.com/v0/item/{id}.json"
+    limit: 30
+    tags: [提高开发效率的工具, 可产品化开源项目]
+
+  GitHubTrending:
+    type: api
+    enabled: true
+    # 走 GitHub 官方 search API，比爬 trending 页稳定
+    url: "https://api.github.com/search/repositories"
+    params:
+      q: "created:>{days_ago} stars:>50"
+      sort: "stars"
+      order: "desc"
+      per_page: 30
+    tags: [可产品化开源项目, 提高开发效率的工具]
+
+  V2EX:
+    type: api
+    enabled: true
+    url: "https://www.v2ex.com/api/topics/hot.json"
+    tags: [近10天可落地信息差, 日常痛点+解决方案]
+
+  # ---------- 给薅羊毛用：长春本地 ----------
+  # 本地生活类公开源较少，优先走 web 搜索；此处保留 RSS 位
+  长春本地宝:
+    type: html
+    enabled: false                # 需自行确认页面结构后启用
+    url: "http://cc.bendibao.com/"
+    tags: [门店折扣, 景区娱乐, 美食餐饮]
+
+  # ---------- 插件位（强反爬平台，后续接入） ----------
+  # 实现方式：在 scripts/core/plugins/ 下新建同名 .py，
+  # 暴露 fetch(keyword, limit) -> List[dict]，然后在下面把 enabled 改 true
+  小红书:
+    type: plugin
+    enabled: false
+    module: "xiaohongshu"
+    tags: [近10天可落地信息差, 日常痛点+解决方案]
+
+  知乎:
+    type: plugin
+    enabled: false
+    module: "zhihu"
+    tags: [近10天可落地信息差, 日常痛点+解决方案]
+
+  微博:
+    type: plugin
+    enabled: false
+    module: "weibo"
+    tags: [近10天可落地信息差]
+
+  即刻:
+    type: plugin
+    enabled: false
+    module: "jike"
+    tags: [近10天可落地信息差, 提高开发效率的工具]

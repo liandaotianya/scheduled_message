@@ -1,0 +1,117 @@
+{# 长春薅羊毛活动收集 —— 邮件模板
+   大标题固定格式：长春薅羊毛 X月第Y期
+   标题区严禁出现具体日期 #}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ title }}</title>
+</head>
+<body style="margin:0;padding:0;background:#f4f5f7;font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f5f7;padding:20px 10px;">
+<tr><td align="center">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:680px;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.06);">
+
+  <!-- 头部 -->
+  <tr>
+    <td style="background:linear-gradient(135deg,#ff6b35 0%,#f7931e 100%);padding:28px 24px;text-align:center;">
+      <div style="font-size:24px;font-weight:700;color:#ffffff;letter-spacing:1px;">{{ title }}</div>
+      <div style="margin-top:8px;font-size:13px;color:rgba(255,255,255,.9);">纯线下 · 限时 · 值得去</div>
+    </td>
+  </tr>
+
+  <!-- 本期小结 -->
+  <tr>
+    <td style="padding:16px 24px 0;">
+      <div style="background:#fff7f0;border-left:4px solid #ff6b35;padding:12px 14px;border-radius:0 6px 6px 0;font-size:14px;color:#8a4b1a;">
+        {{ summary }}
+      </div>
+    </td>
+  </tr>
+
+  <!-- 活动列表 -->
+  <tr>
+    <td style="padding:16px 24px 8px;">
+      {% for d in deals %}
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:14px;border:1px solid #eee;border-radius:8px;overflow:hidden;">
+        <tr>
+          <td style="background:#fafafa;padding:10px 14px;border-bottom:1px solid #eee;">
+            <span style="display:inline-block;background:#ff6b35;color:#fff;font-size:11px;padding:2px 8px;border-radius:10px;margin-right:8px;vertical-align:middle;">{{ d.category }}</span>
+            <span style="font-size:16px;font-weight:600;color:#222;vertical-align:middle;">{{ d.title }}</span>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:12px 14px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:14px;color:#444;line-height:1.7;">
+              {% if d.discount %}
+              <tr>
+                <td width="76" style="color:#999;vertical-align:top;">优惠力度</td>
+                <td style="color:#ff6b35;font-weight:600;">{{ d.discount }}</td>
+              </tr>
+              {% endif %}
+              {% if d.time %}
+              <tr>
+                <td style="color:#999;vertical-align:top;">活动时间</td>
+                <td>{{ d.time }}</td>
+              </tr>
+              {% endif %}
+              {% if d.location %}
+              <tr>
+                <td style="color:#999;vertical-align:top;">地点</td>
+                <td>{{ d.location }}</td>
+              </tr>
+              {% endif %}
+              {% if d.content %}
+              <tr>
+                <td style="color:#999;vertical-align:top;">活动内容</td>
+                <td>{{ d.content }}</td>
+              </tr>
+              {% endif %}
+              {% if d.age %}
+              <tr>
+                <td style="color:#999;vertical-align:top;">适合年龄</td>
+                <td>{{ d.age }}</td>
+              </tr>
+              {% endif %}
+              {% if d.how %}
+              <tr>
+                <td style="color:#999;vertical-align:top;">参与方式</td>
+                <td>{{ d.how }}</td>
+              </tr>
+              {% endif %}
+              {% if d.rarity %}
+              <tr>
+                <td style="color:#999;vertical-align:top;">稀缺性</td>
+                <td style="color:#c0392b;">{{ d.rarity }}</td>
+              </tr>
+              {% endif %}
+              {% if d.url %}
+              <tr>
+                <td style="color:#999;vertical-align:top;">来源</td>
+                <td><a href="{{ d.url }}" style="color:#2b7de9;text-decoration:none;">查看原文 &rarr;</a></td>
+              </tr>
+              {% endif %}
+            </table>
+          </td>
+        </tr>
+      </table>
+      {% endfor %}
+    </td>
+  </tr>
+
+  <!-- 页脚 -->
+  <tr>
+    <td style="padding:16px 24px 24px;border-top:1px solid #f0f0f0;">
+      <div style="font-size:12px;color:#999;line-height:1.7;">
+        本邮件由自动化任务生成，仅供参考，参与前请以商家实际公示为准。<br>
+        只收录长春本地线下活动，线上平台通用活动已自动过滤。
+      </div>
+    </td>
+  </tr>
+
+</table>
+</td></tr>
+</table>
+</body>
+</html>

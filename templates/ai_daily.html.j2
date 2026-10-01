@@ -1,0 +1,95 @@
+{# AI 日报 —— 邮件模板
+   表头固定：标题 | 说明 | 落地难度 | 赚钱潜力
+   标题必须可点击跳原文 #}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ title }}</title>
+</head>
+<body style="margin:0;padding:0;background:#f4f5f7;font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f5f7;padding:20px 10px;">
+<tr><td align="center">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:760px;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.06);">
+
+  <!-- 头部 -->
+  <tr>
+    <td style="background:linear-gradient(135deg,#1a1a2e 0%,#16213e 100%);padding:26px 24px;text-align:center;">
+      <div style="font-size:23px;font-weight:700;color:#ffffff;letter-spacing:.5px;">{{ title }}</div>
+      <div style="margin-top:8px;font-size:13px;color:rgba(255,255,255,.75);">共 {{ total_items }} 条 · 只挑能赚钱和能落地的</div>
+    </td>
+  </tr>
+
+  <!-- 今日亮点 -->
+  {% if highlights %}
+  <tr>
+    <td style="padding:18px 24px 0;">
+      <div style="background:#f0f7ff;border-radius:8px;padding:14px 16px;">
+        <div style="font-size:14px;font-weight:700;color:#1a5fb4;margin-bottom:8px;">今日亮点</div>
+        {% for h in highlights %}
+        <div style="font-size:13px;color:#333;line-height:1.8;">
+          <span style="color:#2b7de9;font-weight:700;">{{ loop.index }}.</span> {{ h }}
+        </div>
+        {% endfor %}
+      </div>
+    </td>
+  </tr>
+  {% endif %}
+
+  <!-- 各分类 -->
+  <tr>
+    <td style="padding:8px 24px 4px;">
+      {% for sec in sections %}
+      <div style="margin-top:18px;">
+        <div style="font-size:15px;font-weight:700;color:#16213e;padding-bottom:8px;border-bottom:2px solid #e8eef7;">
+          {{ sec.name }}
+          <span style="font-size:12px;font-weight:400;color:#999;">（{{ sec['items']|length }} 条）</span>
+        </div>
+
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:13px;margin-top:8px;">
+          <tr style="background:#fafbfc;">
+            <th align="left" style="padding:8px 10px;color:#666;font-weight:600;border-bottom:1px solid #eee;width:38%;">标题</th>
+            <th align="left" style="padding:8px 10px;color:#666;font-weight:600;border-bottom:1px solid #eee;">说明</th>
+            <th align="center" style="padding:8px 6px;color:#666;font-weight:600;border-bottom:1px solid #eee;width:66px;">落地难度</th>
+            <th align="center" style="padding:8px 6px;color:#666;font-weight:600;border-bottom:1px solid #eee;width:66px;">赚钱潜力</th>
+          </tr>
+          {% for it in sec['items'] %}
+          <tr>
+            <td style="padding:9px 10px;border-bottom:1px solid #f5f5f5;vertical-align:top;line-height:1.5;">
+              {% if it.url %}
+              <a href="{{ it.url }}" style="color:#2b7de9;text-decoration:none;font-weight:500;">{{ it.title }}</a>
+              {% else %}
+              <span style="color:#333;font-weight:500;">{{ it.title }}</span>
+              {% endif %}
+            </td>
+            <td style="padding:9px 10px;border-bottom:1px solid #f5f5f5;color:#555;vertical-align:top;line-height:1.5;">{{ it.desc }}</td>
+            <td align="center" style="padding:9px 6px;border-bottom:1px solid #f5f5f5;vertical-align:top;">
+              <span style="font-size:11px;padding:2px 7px;border-radius:9px;background:{{ '#e8f5e9' if it.difficulty == '低' else ('#fff8e1' if it.difficulty == '中' else '#fdecea') }};color:{{ '#2e7d32' if it.difficulty == '低' else ('#f57f17' if it.difficulty == '中' else '#c62828') }};">{{ it.difficulty }}</span>
+            </td>
+            <td align="center" style="padding:9px 6px;border-bottom:1px solid #f5f5f5;vertical-align:top;">
+              <span style="font-size:11px;padding:2px 7px;border-radius:9px;background:{{ '#e8f5e9' if it.value == '高' else ('#fff8e1' if it.value == '中' else '#f0f0f0') }};color:{{ '#2e7d32' if it.value == '高' else ('#f57f17' if it.value == '中' else '#888') }};">{{ it.value }}</span>
+            </td>
+          </tr>
+          {% endfor %}
+        </table>
+      </div>
+      {% endfor %}
+    </td>
+  </tr>
+
+  <!-- 页脚 -->
+  <tr>
+    <td style="padding:20px 24px 24px;">
+      <div style="border-top:1px solid #f0f0f0;padding-top:14px;font-size:12px;color:#999;line-height:1.7;">
+        所有标题均可点击跳转原文，无链接内容已自动剔除。<br>
+        落地难度与赚钱潜力为主观判断，仅供参考。
+      </div>
+    </td>
+  </tr>
+
+</table>
+</td></tr>
+</table>
+</body>
+</html>

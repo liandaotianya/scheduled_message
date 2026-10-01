@@ -1,0 +1,102 @@
+{# 用户痛点快报 —— 邮件模板
+   按 6 大场景分组展示 #}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ title }}</title>
+</head>
+<body style="margin:0;padding:0;background:#f4f5f7;font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f5f7;padding:20px 10px;">
+<tr><td align="center">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:720px;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.06);">
+
+  <!-- 头部 -->
+  <tr>
+    <td style="background:linear-gradient(135deg,#6a11cb 0%,#2575fc 100%);padding:26px 24px;text-align:center;">
+      <div style="font-size:23px;font-weight:700;color:#ffffff;letter-spacing:.5px;">{{ title }}</div>
+      <div style="margin-top:8px;font-size:13px;color:rgba(255,255,255,.85);">从真实吐槽里找可落地的产品机会</div>
+    </td>
+  </tr>
+
+  <!-- 小结 -->
+  <tr>
+    <td style="padding:16px 24px 0;">
+      <div style="background:#f5f0ff;border-left:4px solid #6a11cb;padding:12px 14px;border-radius:0 6px 6px 0;font-size:14px;color:#4a2b8a;">
+        {{ summary }}
+      </div>
+    </td>
+  </tr>
+
+  <!-- 痛点列表：按场景分组 -->
+  <tr>
+    <td style="padding:8px 24px 8px;">
+      {% set grouped = {} %}
+      {% for s in scenes %}
+        {% if pains | selectattr('scene', 'equalto', s) | list %}
+          <div style="margin-top:18px;">
+            <div style="font-size:15px;font-weight:700;color:#2575fc;padding-bottom:8px;border-bottom:2px solid #eef3ff;">{{ s }}</div>
+            {% for p in pains if p.scene == s %}
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:10px;border:1px solid #eee;border-radius:8px;overflow:hidden;">
+              <tr>
+                <td style="background:#fafbfc;padding:10px 14px;border-bottom:1px solid #eee;">
+                  <span style="font-size:14px;font-weight:600;color:#222;">{{ p.pain }}</span>
+                  {% if p.high_value and p.high_value != '否' %}
+                  <span style="display:inline-block;background:#6a11cb;color:#fff;font-size:11px;padding:2px 8px;border-radius:10px;margin-left:8px;vertical-align:middle;">{{ p.high_value }}</span>
+                  {% endif %}
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:11px 14px;">
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:13px;color:#444;line-height:1.7;">
+                    {% if p.quote %}
+                    <tr>
+                      <td width="72" style="color:#999;vertical-align:top;">用户原话</td>
+                      <td style="color:#666;font-style:italic;">「{{ p.quote }}」</td>
+                    </tr>
+                    {% endif %}
+                    {% if p.solution %}
+                    <tr>
+                      <td style="color:#999;vertical-align:top;">解决思路</td>
+                      <td style="color:#2575fc;">{{ p.solution }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if p.difficulty %}
+                    <tr>
+                      <td style="color:#999;vertical-align:top;">实现难度</td>
+                      <td>{{ p.difficulty }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if p.url %}
+                    <tr>
+                      <td style="color:#999;vertical-align:top;">来源</td>
+                      <td><a href="{{ p.url }}" style="color:#2575fc;text-decoration:none;">查看原文 &rarr;</a></td>
+                    </tr>
+                    {% endif %}
+                  </table>
+                </td>
+              </tr>
+            </table>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endfor %}
+    </td>
+  </tr>
+
+  <!-- 页脚 -->
+  <tr>
+    <td style="padding:18px 24px 24px;">
+      <div style="border-top:1px solid #f0f0f0;padding-top:14px;font-size:12px;color:#999;line-height:1.7;">
+        只收录能用软件或 AI 解决的痛点，情绪宣泄类已自动过滤。<br>
+        标注「待造」表示目前没有现成方案，是可切入的机会点。
+      </div>
+    </td>
+  </tr>
+
+</table>
+</td></tr>
+</table>
+</body>
+</html>

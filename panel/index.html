@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>定时任务管理面板</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- 顶部栏 -->
+<header class="topbar">
+  <div class="brand">
+    <span class="dot"></span>
+    <h1>定时任务管理面板</h1>
+  </div>
+  <button id="btnSettings" class="icon-btn" title="设置">&#9881;</button>
+</header>
+
+<!-- 未配置提示 -->
+<section id="setup" class="card setup hidden">
+  <h2>首次使用：填写仓库信息</h2>
+  <p class="hint">
+    需要 GitHub 细粒度 Token（权限：该仓库的 <code>Contents: Read&Write</code> 与 <code>Actions: Read&Write</code>）。
+    Token 只保存在你自己浏览器的 localStorage，不会上传到任何服务器。
+  </p>
+  <div class="field">
+    <label>仓库（owner/repo）</label>
+    <input id="cfgRepo" type="text" placeholder="例如 zhangsan/ai-daily-bot" autocomplete="off">
+  </div>
+  <div class="field">
+    <label>分支</label>
+    <input id="cfgBranch" type="text" value="main" autocomplete="off">
+  </div>
+  <div class="field">
+    <label>GitHub Token</label>
+    <input id="cfgToken" type="password" placeholder="github_pat_xxx 或 ghp_xxx" autocomplete="off">
+  </div>
+  <div class="actions">
+    <button id="btnSaveCfg" class="primary">保存并连接</button>
+    <button id="btnCancelCfg" class="ghost">取消</button>
+  </div>
+  <p id="cfgMsg" class="msg"></p>
+</section>
+
+<!-- 连接异常提示 -->
+<div id="banner" class="banner hidden"></div>
+
+<!-- 主体 -->
+<main id="main" class="hidden">
+
+  <!-- 任务总览 -->
+  <section class="card">
+    <div class="card-head">
+      <h2>任务总览</h2>
+      <button id="btnRefresh" class="ghost small">刷新</button>
+    </div>
+    <div id="taskGrid" class="task-grid"></div>
+    <p class="hint small">下次执行时间按配置的规则推算，GitHub 定时任务在高峰期可能延迟数分钟。</p>
+  </section>
+
+  <!-- 手动执行 -->
+  <section class="card">
+    <h2>手动执行</h2>
+    <div class="field">
+      <label>选择任务</label>
+      <select id="runTask">
+        <option value="auto">自动判断（按当前时间槽）</option>
+        <option value="changchun_deals">长春薅羊毛</option>
+        <option value="ai_daily">AI 日报</option>
+        <option value="pain_points">用户痛点快报</option>
+        <option value="all">全部任务</option>
+      </select>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label>收件人覆盖（可留空）</label>
+        <input id="runTo" type="text" placeholder="留空则用配置里的收件人">
+      </div>
+      <div class="field">
+        <label>条数覆盖（可留空）</label>
+        <input id="runItems" type="number" min="1" placeholder="如 5 / 8 / 20">
+      </div>
+    </div>
+
+    <label class="check">
+      <input id="runDry" type="checkbox">
+      <span>试跑模式（不发信，只验证流程）</span>
+    </label>
+
+    <div class="actions">
+      <button id="btnRun" class="primary">立即执行</button>
+    </div>
+    <p id="runMsg" class="msg"></p>
+  </section>
+
+  <!-- 参数配置 -->
+  <section class="card">
+    <div class="card-head">
+      <h2>参数配置</h2>
+      <button id="btnLoadCfg" class="ghost small">读取当前配置</button>
+    </div>
+    <div id="configForm" class="config-form">
+      <p class="hint">点击「读取当前配置」从仓库加载 config.yaml。</p>
+    </div>
+    <div class="actions">
+      <button id="btnSaveParams" class="primary">保存到仓库</button>
+    </div>
+    <p id="paramMsg" class="msg"></p>
+  </section>
+
+  <!-- 执行历史 -->
+  <section class="card">
+    <div class="card-head">
+      <h2>执行历史</h2>
+      <button id="btnLoadRuns" class="ghost small">加载</button>
+    </div>
+    <div id="runList" class="run-list">
+      <p class="hint">点击「加载」查看最近 20 次执行记录。</p>
+    </div>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <span id="connInfo">未连接</span>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,143 @@
+name: 定时任务执行
+
+on:
+  schedule:
+    # ⚠️ GitHub Actions 的 cron 使用 UTC 时间，北京时间需减 8 小时
+    - cron: '23 15 * * *'   # 北京时间 23:23 —— 长春薅羊毛槽位
+    - cron: '37 15 * * *'   # 北京时间 23:37 —— AI日报 / 用户痛点快报槽位
+
+  # 手动触发入口（管理面板和 GitHub 网页都会用到）
+  workflow_dispatch:
+    inputs:
+      task:
+        description: '要执行的任务'
+        required: true
+        default: 'auto'
+        type: choice
+        options:
+          - auto            # 按当前时间槽自动判断
+          - changchun_deals
+          - ai_daily
+          - pain_points
+          - all
+      dry_run:
+        description: '只跑流程不发信（调试用）'
+        required: false
+        default: false
+        type: boolean
+      to:
+        description: '临时覆盖收件人（留空用配置值）'
+        required: false
+        default: ''
+        type: string
+      items:
+        description: '条数覆盖（AI日报=每分类条数，痛点=总条数）'
+        required: false
+        default: ''
+        type: string
+
+# 需要写权限才能把存档和期数计数提交回仓库
+permissions:
+  contents: write
+
+# 同一时刻只跑一个，避免期号竞争
+concurrency:
+  group: scheduled-run
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: 检出仓库
+        uses: actions/checkout@v4
+
+      - name: 配置 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: 安装依赖
+        run: pip install -r requirements.txt
+
+      - name: 确定执行参数
+        id: params
+        env:
+          INPUT_TASK: ${{ inputs.task || 'auto' }}
+          INPUT_DRY: ${{ inputs.dry_run }}
+          INPUT_TO: ${{ inputs.to }}
+          INPUT_ITEMS: ${{ inputs.items }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            echo "mode=manual" >> "$GITHUB_OUTPUT"
+            echo "task=$INPUT_TASK" >> "$GITHUB_OUTPUT"
+            echo "dry=$INPUT_DRY" >> "$GITHUB_OUTPUT"
+            echo "to=$INPUT_TO" >> "$GITHUB_OUTPUT"
+            echo "items=$INPUT_ITEMS" >> "$GITHUB_OUTPUT"
+          else
+            # 定时触发：根据 cron 时间判断槽位
+            # 23:23 -> deals 槽   23:37 -> report 槽
+            MIN=$(date -u +%M)
+            if [ "$MIN" = "23" ]; then
+              echo "slot=deals" >> "$GITHUB_OUTPUT"
+            else
+              echo "slot=report" >> "$GITHUB_OUTPUT"
+            fi
+            echo "mode=schedule" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: 执行任务
+        env:
+          MAIL_AUTH_CODE: ${{ secrets.MAIL_AUTH_CODE }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SLOT: ${{ steps.params.outputs.slot }}
+          TASK: ${{ steps.params.outputs.task }}
+          DRY_RUN: ${{ steps.params.outputs.dry }}
+          TO: ${{ steps.params.outputs.to }}
+          ITEMS: ${{ steps.params.outputs.items }}
+          MODE: ${{ steps.params.outputs.mode }}
+        run: |
+          set -e
+          ARGS=""
+          [ "$DRY_RUN" = "true" ] && ARGS="$ARGS --dry-run"
+          [ -n "$TO" ] && ARGS="$ARGS --to $TO"
+
+          if [ "$MODE" = "schedule" ]; then
+            echo "定时触发，槽位: $SLOT"
+            python scripts/dispatch.py --slot "$SLOT" $ARGS
+          else
+            if [ "$TASK" = "auto" ]; then
+              echo "手动触发（自动判断）"
+              python scripts/dispatch.py $ARGS
+            elif [ "$TASK" = "all" ]; then
+              python scripts/run_manual.py --task all $ARGS
+            else
+              EXTRA=""
+              case "$TASK" in
+                ai_daily)      [ -n "$ITEMS" ] && EXTRA="--items-per-category $ITEMS" ;;
+                pain_points)   [ -n "$ITEMS" ] && EXTRA="--total-items $ITEMS" ;;
+                changchun_deals) [ -n "$ITEMS" ] && EXTRA="--min-items $ITEMS" ;;
+              esac
+              python scripts/run_manual.py --task "$TASK" $ARGS $EXTRA
+            fi
+          fi
+
+      - name: 提交存档与期数计数
+        if: always()
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/ || true
+          if git diff --cached --quiet; then
+            echo "没有需要提交的变更"
+          else
+            git commit -m "chore: 更新日报存档与期数计数 [skip ci]"
+            git pull --rebase --autostash || true
+            git push
+          fi
