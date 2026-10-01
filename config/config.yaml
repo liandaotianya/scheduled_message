@@ -73,7 +73,7 @@ llm:
   max_retries: 4                  # 每个通道的重试次数（应对临时高负载 503）
   timeout: 180                    # 单次请求超时（秒）
   models:
-    gemini: "gemini-3.8-flash"
+    gemini: "gemini-3.5-flash-lite"
     deepseek: "deepseek-chat"
 
 

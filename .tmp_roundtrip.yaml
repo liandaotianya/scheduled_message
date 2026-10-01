@@ -59,7 +59,7 @@ llm:
   max_retries: 4
   timeout: 180
   models:
-    gemini: gemini-3.8-flash
+    gemini: gemini-3.5-flash-lite
     deepseek: deepseek-chat
 runtime:
   timezone: Asia/Shanghai
