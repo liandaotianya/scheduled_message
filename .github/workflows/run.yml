@@ -2,7 +2,7 @@ name: 定时任务执行
 
 on:
   schedule:
-    # ⚠️ GitHub Actions 的 cron 使用 UTC 时间，北京时间需减 8 小时
+    # ⚠️ GitHub Actions 的 cron 使用 UTC 时间，北京时间减 8 小时（17 点档）
     - cron: '03 9 * * *'   # 北京时间 17:03 —— 长春薅羊毛槽位
     - cron: '17 9 * * *'   # 北京时间 17:17 —— AI日报 / 用户痛点快报槽位
 
