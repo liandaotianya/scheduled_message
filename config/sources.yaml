@@ -57,12 +57,11 @@ sources:
     tags: [近10天可落地信息差, 日常痛点+解决方案]
 
   # ---------- 给薅羊毛用：长春本地 ----------
-  # 本地生活类公开源较少，优先走 web 搜索；此处保留 RSS 位
   长春本地宝:
-    type: html
-    enabled: false                # 需自行确认页面结构后启用
-    url: "http://cc.bendibao.com/"
-    tags: [门店折扣, 景区娱乐, 美食餐饮]
+    type: plugin
+    enabled: true                 # 2026-10-03 已实现 bendibao 插件，页面结构实测稳定
+    module: "bendibao"
+    tags: [亲子体验, 公益文化, 门店折扣, 景区娱乐, 美食餐饮]
 
   # ---------- 插件位（强反爬平台，后续接入） ----------
   # 实现方式：在 scripts/core/plugins/ 下新建同名 .py，
