@@ -17,10 +17,10 @@ mail:
 # ---------- 三个任务 ----------
 tasks:
 
-  # ① 长春薅羊毛活动收集：每月双号（排除 16/30 号）23:23
+  # ① 长春薅羊毛活动收集：每月双号（排除 16/30 号）17:03
   changchun_deals:
     enabled: true
-    time_slot: "23:23"
+    time_slot: "17:03"
     days: even                    # even=双号 / odd=单号 / special=仅 run_days
     exclude_days: [16, 30]
     min_items: 5                  # 每期最少条数，不达标会在日志里警告
@@ -33,10 +33,10 @@ tasks:
       - 景区娱乐
       - 美食餐饮
 
-  # ② AI 日报：每月单号（排除 7/23 号）23:37
+  # ② AI 日报：每月单号（排除 7/23 号）17:17
   ai_daily:
     enabled: true
-    time_slot: "23:37"
+    time_slot: "17:17"
     days: odd
     exclude_days: [7, 23]
     items_per_category: 8         # 每个分类的条数
@@ -48,10 +48,10 @@ tasks:
       - 其他优质资讯
       - 日常痛点+解决方案
 
-  # ③ 用户痛点快报：每月 7/16/23/30 号 23:37
+  # ③ 用户痛点快报：每月 7/16/23/30 号 17:17
   pain_points:
     enabled: true
-    time_slot: "23:37"
+    time_slot: "17:17"
     days: special
     run_days: [7, 16, 23, 30]
     total_items: 20

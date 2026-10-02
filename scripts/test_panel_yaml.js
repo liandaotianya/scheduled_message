@@ -55,8 +55,8 @@ check('changchun_deals.categories 是数组且5项',
   Array.isArray(cfg.tasks.changchun_deals.categories) &&
   cfg.tasks.changchun_deals.categories.length === 5,
   JSON.stringify(cfg.tasks.changchun_deals.categories));
-check('ai_daily.time_slot 保留为字符串 "23:37"',
-  cfg.tasks.ai_daily.time_slot === '23:37',
+check('ai_daily.time_slot 保留为字符串 "17:17"',
+  cfg.tasks.ai_daily.time_slot === '17:17',
   `实际 ${JSON.stringify(cfg.tasks.ai_daily.time_slot)}`);
 check('ai_daily.exclude_days = [7,23]',
   JSON.stringify(cfg.tasks.ai_daily.exclude_days) === '[7,23]');
@@ -87,7 +87,7 @@ check('往返后 categories 不变',
   JSON.stringify(reparsed.tasks.changchun_deals.categories) ===
   JSON.stringify(cfg.tasks.changchun_deals.categories));
 check('往返后 time_slot 仍是字符串',
-  reparsed.tasks.ai_daily.time_slot === '23:37');
+  reparsed.tasks.ai_daily.time_slot === '17:17');
 check('往返后 items_per_category = 8',
   reparsed.tasks.ai_daily.items_per_category === 8);
 check('往返后 llm.models 完整',

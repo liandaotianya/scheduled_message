@@ -3,8 +3,8 @@ name: 定时任务执行
 on:
   schedule:
     # ⚠️ GitHub Actions 的 cron 使用 UTC 时间，北京时间需减 8 小时
-    - cron: '23 15 * * *'   # 北京时间 23:23 —— 长春薅羊毛槽位
-    - cron: '37 15 * * *'   # 北京时间 23:37 —— AI日报 / 用户痛点快报槽位
+    - cron: '03 9 * * *'   # 北京时间 17:03 —— 长春薅羊毛槽位
+    - cron: '17 9 * * *'   # 北京时间 17:17 —— AI日报 / 用户痛点快报槽位
 
   # 手动触发入口（管理面板和 GitHub 网页都会用到）
   workflow_dispatch:
@@ -80,9 +80,9 @@ jobs:
             echo "items=$INPUT_ITEMS" >> "$GITHUB_OUTPUT"
           else
             # 定时触发：根据 cron 时间判断槽位
-            # 23:23 -> deals 槽   23:37 -> report 槽
+            # 17:03 -> deals 槽   17:17 -> report 槽
             MIN=$(date -u +%M)
-            if [ "$MIN" = "23" ]; then
+            if [ "$MIN" = "03" ]; then
               echo "slot=deals" >> "$GITHUB_OUTPUT"
             else
               echo "slot=report" >> "$GITHUB_OUTPUT"
