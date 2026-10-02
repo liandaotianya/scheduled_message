@@ -72,6 +72,7 @@ def _fetch_listing() -> List[Dict[str, str]]:
     if not items:
         # 站点有「渐进式锁定」反爬：请求过频时列表页会被替换成验证码页
         raise RuntimeError("本地宝列表页被拦截（疑似触发反爬验证）或结构已变化")
+    return items
 
 
 def _recent_enough(date_str: str, days: int) -> bool:
