@@ -85,6 +85,33 @@ def resolve(when: datetime, slot: str | None = None) -> list[str]:
     return [key for key in candidates if day_matches(key, when)]
 
 
+def _sent_marker_path(when: datetime) -> Path:
+    """当天已发送任务的标记文件（跨运行防重发）。"""
+    root = Path(__file__).resolve().parent.parent
+    return root / "data" / "sent" / f"{when:%Y-%m-%d}.json"
+
+
+def _load_sent(when: datetime) -> set:
+    import json
+
+    try:
+        return set(json.loads(_sent_marker_path(when).read_text(encoding="utf-8")))
+    except Exception:  # noqa: BLE001 - 无标记文件视为未发送
+        return set()
+
+
+def _mark_sent(when: datetime, key: str) -> None:
+    import json
+
+    sent = _load_sent(when)
+    sent.add(key)
+    path = _sent_marker_path(when)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps(sorted(sent), ensure_ascii=False), encoding="utf-8"
+    )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="定时任务调度入口")
     parser.add_argument("--slot", choices=list(SLOTS), help="槽位：deals / report")
@@ -113,6 +140,15 @@ def main() -> int:
     else:
         targets = resolve(when, args.slot)
 
+    # 定时触发防重发：GitHub 定时偶发延迟数小时，可能把两次触发挤到一起执行。
+    # 仅对定时槽位生效（带 --slot 且未强制指定任务），手动触发不受限。
+    if args.slot and not args.task and not args.force:
+        sent = _load_sent(when)
+        skipped = [t for t in targets if t in sent]
+        if skipped:
+            log.info("定时防重发：今天已发送过 %s，本次跳过", ", ".join(skipped))
+        targets = [t for t in targets if t not in sent]
+
     if not targets:
         log.info("今天此刻没有需要执行的任务，正常退出")
         return 0
@@ -137,7 +173,10 @@ def main() -> int:
             continue
         log.info("---- 开始执行任务: %s ----", key)
         try:
-            results[key] = module.run(overrides)
+            ok = module.run(overrides)
+            results[key] = ok
+            if ok and not args.dry_run:
+                _mark_sent(when, key)
         except Exception as exc:  # noqa: BLE001 - 单任务失败不影响其他
             log.exception("任务 %s 执行异常", key, exc_info=exc)
             results[key] = False
