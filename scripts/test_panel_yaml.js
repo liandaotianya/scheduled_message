@@ -51,9 +51,9 @@ check('三个任务都存在',
 check('changchun_deals.exclude_days = [16,30]',
   JSON.stringify(cfg.tasks.changchun_deals.exclude_days) === '[16,30]',
   JSON.stringify(cfg.tasks.changchun_deals.exclude_days));
-check('changchun_deals.categories 是数组且5项',
+check('changchun_deals.categories 是数组且8项',
   Array.isArray(cfg.tasks.changchun_deals.categories) &&
-  cfg.tasks.changchun_deals.categories.length === 5,
+  cfg.tasks.changchun_deals.categories.length === 8,
   JSON.stringify(cfg.tasks.changchun_deals.categories));
 check('ai_daily.time_slot 保留为字符串 "17:17"',
   cfg.tasks.ai_daily.time_slot === '17:17',
@@ -108,7 +108,7 @@ check('修改多个收件人保留',
 check('修改 run_days 生效',
   JSON.stringify(reparsed2.tasks.pain_points.run_days) === '[5,15,25]');
 check('未修改的字段仍存在',
-  reparsed2.tasks.changchun_deals.categories.length === 5);
+  reparsed2.tasks.changchun_deals.categories.length === 8);
 
 console.log('\n[6] 输出格式检查（能否被 Python yaml 读回）');
 fs.writeFileSync(path.join(ROOT, '.tmp_roundtrip.yaml'), dumped2, 'utf8');
