@@ -17,7 +17,7 @@
   <tr>
     <td style="background:linear-gradient(135deg,#ff6b35 0%,#f7931e 100%);padding:28px 24px;text-align:center;">
       <div style="font-size:24px;font-weight:700;color:#ffffff;letter-spacing:1px;">{{ title }}</div>
-      <div style="margin-top:8px;font-size:13px;color:rgba(255,255,255,.9);">纯线下 · 限时 · 值得去</div>
+      <div style="margin-top:8px;font-size:13px;color:rgba(255,255,255,.9);">限量 · 错过即无 · 只挑不常有的</div>
     </td>
   </tr>
 
@@ -38,6 +38,7 @@
         <tr>
           <td style="background:#fafafa;padding:10px 14px;border-bottom:1px solid #eee;">
             <span style="display:inline-block;background:#ff6b35;color:#fff;font-size:11px;padding:2px 8px;border-radius:10px;margin-right:8px;vertical-align:middle;">{{ d.category }}</span>
+            <span style="display:inline-block;background:#c0392b;color:#fff;font-size:11px;padding:2px 8px;border-radius:10px;margin-right:8px;vertical-align:middle;">⏰ {{ d.rarity }}</span>
             <span style="font-size:16px;font-weight:600;color:#222;vertical-align:middle;">{{ d.title }}</span>
           </td>
         </tr>
@@ -78,12 +79,6 @@
               <tr>
                 <td style="color:#999;vertical-align:top;">参与方式</td>
                 <td>{{ d.how }}</td>
-              </tr>
-              {% endif %}
-              {% if d.rarity %}
-              <tr>
-                <td style="color:#999;vertical-align:top;">稀缺性</td>
-                <td style="color:#c0392b;">{{ d.rarity }}</td>
               </tr>
               {% endif %}
               {% if d.url %}
