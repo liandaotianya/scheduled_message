@@ -113,11 +113,22 @@ def _fetch_detail(url: str) -> str:
     return text[i : i + DETAIL_CHARS]
 
 
-def fetch(keyword: str = "", limit: int = 15, recent_days: int = 7) -> List[Dict[str, Any]]:
+def fetch(keyword: str = "", limit: int = 15, recent_days: int | None = None) -> List[Dict[str, Any]]:
     """对外接口：返回本地宝最新活动条目（含详情页正文片段）。
 
-    站点有渐进式反爬（锁定约 10 分钟），被拦时等 65 秒重试一次。
+    站点有渐进式反爬（锁定约 10 分钟），被拦时等 65 秒重试一次；
+    时间窗口默认读取任务配置，站点更新慢时可调大以保证候选量。
     """
+    if recent_days is None:
+        try:
+            from core import config as cfg
+
+            recent_days = int(
+                cfg.get("tasks.changchun_deals.search_recent_days", 14)
+            )
+        except Exception:  # noqa: BLE001 - 读不到配置就用默认窗口
+            recent_days = 14
+
     listing: List[Dict[str, str]] = []
     for attempt in (1, 2):
         try:

@@ -289,6 +289,28 @@ def fetch_all(
     return merged
 
 
+def fetch_by_tags(
+    tags: List[str], limit: int = DEFAULT_LIMIT, keyword: str = ""
+) -> List[Item]:
+    """只抓与指定标签相关的源，避免无关内容稀释提示词。"""
+    wanted = set(tags or [])
+    merged: List[Item] = []
+    seen: set[str] = set()
+
+    for name, meta in cfg.enabled_sources(None).items():
+        if wanted and not (set(meta.get("tags") or []) & wanted):
+            continue
+        for item in fetch_source(name, meta, limit, keyword):
+            key = item.url.split("?")[0].rstrip("/")
+            if key in seen:
+                continue
+            seen.add(key)
+            merged.append(item)
+
+    log.info("定向抓取（tags=%s）共 %d 条", "、".join(sorted(wanted)), len(merged))
+    return merged
+
+
 def format_for_prompt(items: List[Item], per_item: int = 260) -> str:
     """把抓取结果压成适合塞进提示词的文本。"""
     lines: List[str] = []

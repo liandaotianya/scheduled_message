@@ -93,8 +93,8 @@ def run(overrides: Dict[str, Any] | None = None) -> bool:
     title = f"长春薅羊毛 {now.month}月第{issue}期"
     log.info("开始执行 %s", title)
 
-    # ---- 2. 抓取 ----
-    raw_items = fetcher.fetch_all(limit=30, keyword="长春 优惠 活动")
+    # ---- 2. 抓取（只取本地相关源，避免无关资讯稀释筛选）----
+    raw_items = fetcher.fetch_by_tags(categories, limit=30, keyword="长春 优惠 活动")
     if not raw_items:
         log.error("未抓取到任何原始信息，任务中止")
         return False

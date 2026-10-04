@@ -24,7 +24,7 @@ tasks:
     days: even                    # even=双号 / odd=单号 / special=仅 run_days
     exclude_days: [16, 30]
     min_items: 5                  # 每期最少条数，不达标会在日志里警告
-    search_recent_days: 7         # 搜索时间窗口（天）
+    search_recent_days: 14        # 搜索时间窗口（天，站点更新慢时保证候选量）
     # 品类优先级：顺序即优先级，越靠前越优先收集
     categories:
       - 云闪付抢券消费券
