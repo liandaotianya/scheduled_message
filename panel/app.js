@@ -19,13 +19,13 @@ const TASK_META = {
   },
   ai_daily: {
     label: 'AI 日报',
-    slot: '17:17',
+    slot: '17:03',
     rule: '每月单号（排除 7/23 号）',
     desc: '5 个分类各 8 条，聚焦赚钱与落地',
   },
   pain_points: {
     label: '用户痛点快报',
-    slot: '17:17',
+    slot: '17:03',
     rule: '每月 7 / 16 / 23 / 30 号',
     desc: '从真实吐槽中提炼可落地痛点',
   },

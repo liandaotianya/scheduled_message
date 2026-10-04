@@ -36,10 +36,10 @@ tasks:
       - 景区娱乐
       - 公益文化
 
-  # ② AI 日报：每月单号（排除 7/23 号）17:17
+  # ② AI 日报：每月单号（排除 7/23 号）17:03
   ai_daily:
     enabled: true
-    time_slot: "17:17"
+    time_slot: "17:03"
     days: odd
     exclude_days: [7, 23]
     items_per_category: 8         # 每个分类的条数
@@ -51,10 +51,10 @@ tasks:
       - 其他优质资讯
       - 日常痛点+解决方案
 
-  # ③ 用户痛点快报：每月 7/16/23/30 号 17:17
+  # ③ 用户痛点快报：每月 7/16/23/30 号 17:03
   pain_points:
     enabled: true
-    time_slot: "17:17"
+    time_slot: "17:03"
     days: special
     run_days: [7, 16, 23, 30]
     total_items: 20

@@ -1,10 +1,15 @@
 name: 定时任务执行
 
+env:
+  # 运行环境统一按北京时间，确保日期判断（双号/单号/指定日）与北京时间一致
+  TZ: Asia/Shanghai
+
 on:
   schedule:
-    # ⚠️ GitHub Actions 的 cron 使用 UTC 时间，北京时间减 8 小时（17 点档）
-    - cron: '03 9 * * *'   # 北京时间 17:03 —— 长春薅羊毛槽位
-    - cron: '17 9 * * *'   # 北京时间 17:17 —— AI日报 / 用户痛点快报槽位
+    # ⚠️ GitHub Actions 的 cron 使用 UTC 时间，北京时间减 8 小时
+    # ⚠️ 每天只配一个定时：GitHub 定时偶发延迟数小时，靠分钟区分槽位会误判，
+    #    实际该跑哪个任务由日期规则决定（dispatch 内部判断），与几点跑到无关
+    - cron: '03 9 * * *'   # 北京时间 17:03（延迟到达属正常）
 
   # 手动触发入口（管理面板和 GitHub 网页都会用到）
   workflow_dispatch:
@@ -79,14 +84,7 @@ jobs:
             echo "to=$INPUT_TO" >> "$GITHUB_OUTPUT"
             echo "items=$INPUT_ITEMS" >> "$GITHUB_OUTPUT"
           else
-            # 定时触发：根据 cron 时间判断槽位
-            # 17:03 -> deals 槽   17:17 -> report 槽
-            MIN=$(date -u +%M)
-            if [ "$MIN" = "03" ]; then
-              echo "slot=deals" >> "$GITHUB_OUTPUT"
-            else
-              echo "slot=report" >> "$GITHUB_OUTPUT"
-            fi
+            # 定时触发：不传槽位，交给 dispatch 按当日日期规则自行判断
             echo "mode=schedule" >> "$GITHUB_OUTPUT"
           fi
 
@@ -109,8 +107,8 @@ jobs:
           [ -n "$TO" ] && ARGS="$ARGS --to $TO"
 
           if [ "$MODE" = "schedule" ]; then
-            echo "定时触发，槽位: $SLOT"
-            python scripts/dispatch.py --slot "$SLOT" $ARGS
+            echo "定时触发，按当日日期规则判断任务"
+            python scripts/dispatch.py $ARGS
           else
             if [ "$TASK" = "auto" ]; then
               echo "手动触发（自动判断）"
