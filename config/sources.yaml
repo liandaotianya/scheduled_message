@@ -69,7 +69,7 @@ sources:
     type: plugin
     enabled: true
     module: "websearch"
-    tags: [云闪付抢券消费券, 加油优惠券, 工会福利, 亲子体验, 门店折扣, 美食餐饮, 景区娱乐, 公益文化]
+    tags: [亲子体验, 公益文化, 加油, 工会, 门店折扣, 景区娱乐, 美食餐饮, 云闪付抢券消费券]
 
   # ---------- 插件位（强反爬平台，后续接入） ----------
   # 实现方式：在 scripts/core/plugins/ 下新建同名 .py，
