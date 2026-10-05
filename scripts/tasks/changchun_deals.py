@@ -80,6 +80,36 @@ PROMPT_TMPL = """
 """
 
 
+def load_manual_deals() -> List[Dict[str, Any]]:
+    """读取人工补录清单（data/manual_deals.json）。
+
+    这些条目由人工确认过稀缺性与参与方式，跳过自动筛选直接进本期。
+    """
+    import json
+    from pathlib import Path
+
+    path = Path(__file__).resolve().parent.parent.parent / "data" / "manual_deals.json"
+    try:
+        rows = json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        return []
+    except Exception as exc:  # noqa: BLE001 - 文件损坏不应阻断任务
+        log.warning("人工补录清单读取失败: %s", exc)
+        return []
+    return [r for r in rows if isinstance(r, dict) and r.get("title")]
+
+
+def sort_by_category(
+    deals: List[Dict[str, Any]], categories: List[str]
+) -> List[Dict[str, Any]]:
+    """按配置的品类优先级稳定排序。"""
+    order = {c: i for i, c in enumerate(categories or [])}
+    return sorted(
+        deals,
+        key=lambda d: order.get(str(d.get("category", "")), len(order)),
+    )
+
+
 def run(overrides: Dict[str, Any] | None = None) -> bool:
     """执行任务。overrides 支持面板传入的临时覆盖参数。"""
     overrides = overrides or {}
@@ -114,8 +144,20 @@ def run(overrides: Dict[str, Any] | None = None) -> bool:
         return False
 
     if not isinstance(deals, list):
-        log.error("LLM 返回格式异常，预期数组，实际 %s", type(deals).__name__)
-        return False
+        log.error("LLM 返回格式异常，预期数组，实际 %s", type(deals).__name())
+        deals = []
+
+    # 人工补录条目：已人工确认的稀缺机会，直接并入本期，不再过筛
+    manual = load_manual_deals()
+    if manual:
+        log.info("并入人工补录条目 %d 条", len(manual))
+        seen_titles = {str(d.get("title", "")).strip() for d in deals}
+        deals.extend(
+            d for d in manual if str(d.get("title", "")).strip() not in seen_titles
+        )
+
+    if deals:
+        deals = sort_by_category(deals, categories)
 
     if len(deals) < min_items:
         log.warning("本期仅收集到 %d 条，低于目标 %d 条", len(deals), min_items)
@@ -130,12 +172,12 @@ def run(overrides: Dict[str, Any] | None = None) -> bool:
             "title": title,
             "issue": issue,
             "deals": deals,
-            "summary": f"本期共收录 {len(deals)} 条优质线下活动",
+            "summary": f"本期共收录 {len(deals)} 条稀缺机会",
         },
     )
 
     # ---- 5. 发信（正文内联） ----
-    subject = f"【长春薅羊毛】{now.month}月第{issue}期 本期{len(deals)}条优质线下活动"
+    subject = f"【长春薅羊毛】{now.month}月第{issue}期 本期{len(deals)}条稀缺机会"
     mailer.send(subject, html, dry_run=bool(overrides.get("dry_run")))
 
     # ---- 6. 回写期号 ----
