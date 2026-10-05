@@ -25,7 +25,11 @@
   <tr>
     <td style="padding:16px 24px 0;">
       <div style="background:#fff7f0;border-left:4px solid #ff6b35;padding:12px 14px;border-radius:0 6px 6px 0;font-size:14px;color:#8a4b1a;">
+        {% if deals %}
         {{ summary }}
+        {% else %}
+        本期未收录到符合标准的稀缺机会，以下是具体原因。
+        {% endif %}
       </div>
     </td>
   </tr>
@@ -33,6 +37,15 @@
   <!-- 活动列表 -->
   <tr>
     <td style="padding:16px 24px 8px;">
+      {% if not deals %}
+      <div style="background:#f7f8fa;border:1px solid #e8eaed;border-radius:8px;padding:22px 18px;">
+        <div style="font-size:15px;font-weight:600;color:#555;margin-bottom:10px;">本期为什么没有内容</div>
+        <div style="font-size:14px;color:#666;line-height:1.8;">{{ empty_reason }}</div>
+        <div style="font-size:13px;color:#999;line-height:1.8;margin-top:14px;padding-top:12px;border-top:1px dashed #e0e0e0;">
+          下一期：{{ issue + 1 }}期，发送时间不变。本任务宁缺毋滥，收不到即表示当日确实没有达标机会。
+        </div>
+      </div>
+      {% endif %}
       {% for d in deals %}
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:14px;border:1px solid #eee;border-radius:8px;overflow:hidden;">
         <tr>

@@ -443,7 +443,8 @@ function renderConfigForm() {
 
     if (key === 'changchun_deals') {
       fields.push(field('每期最少条数', 'number', `tasks.${key}.min_items`, tc.min_items));
-      fields.push(field('搜索时间窗口（天）', 'number', `tasks.${key}.search_recent_days`, tc.search_recent_days));
+      fields.push(field('活动有效窗口（天）', 'number', `tasks.${key}.search_recent_days`, tc.search_recent_days));
+      fields.push(field('列表抓取窗口（天）', 'number', `tasks.${key}.source_recent_days`, tc.source_recent_days));
       fields.push(tagsField('排除日期', `tasks.${key}.exclude_days`, tc.exclude_days || []));
       fields.push(tagsField('品类优先级（顺序即优先级）', `tasks.${key}.categories`, tc.categories || []));
     } else if (key === 'ai_daily') {

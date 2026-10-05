@@ -38,8 +38,9 @@ UA = (
     "(KHTML, like Gecko) Chrome/120.0 Safari/537.36"
 )
 
-# 薅羊毛分品类关键词（对齐原方案「分品类搜 4-5 轮」）
-DEFAULT_KEYWORDS = [
+# 分任务的关键词组：不同任务的目标完全不同，必须分开搜，
+# 否则薅羊毛的 8 组词会把 AI 日报 / 痛点快报的候选池全部占满。
+DEAL_KEYWORDS = [
     "长春 消费券 发放 抢券 活动",
     "长春 云闪付 消费券 优惠",
     "长春 加油站 加油优惠 活动",
@@ -49,6 +50,38 @@ DEFAULT_KEYWORDS = [
     "长春 景区 门票 优惠 活动",
     "长春 美食 优惠券 活动",
 ]
+
+AI_KEYWORDS = [
+    "AI 工具 开源 项目 GitHub 2026",
+    "AI Agent 框架 新发布 实测",
+    "独立开发者 变现 AI 产品 案例",
+    "GitHub trending star 增长 快 项目",
+    "AI 提效 编程 工具 更新",
+]
+
+PAIN_KEYWORDS = [
+    "吐槽 难用 换一个 国产 App",
+    "用户 抱怨 麻烦 没有 小程序",
+    "求推荐 工具 找不到 浪费时间",
+    "老年人 不会 用 智能手机 打车",
+    "家长 焦虑 鸡娃 工具 抱怨",
+    "上班 通勤 打卡 加班 痛点 吐槽",
+]
+
+# 任务 -> 关键词组（按 sources.yaml 里配置的源名 + 调用方任务名匹配）
+TASK_KEYWORDS = {
+    "deals": DEAL_KEYWORDS,
+    "ai_daily": AI_KEYWORDS,
+    "pain_points": PAIN_KEYWORDS,
+}
+
+
+def _pick_keywords(task_hint: str, keyword: str) -> List[str]:
+    """按任务选择关键词组；传入的 keyword 永远排在最前。"""
+    terms = list(TASK_KEYWORDS.get(task_hint) or DEAL_KEYWORDS)
+    if keyword and keyword not in terms:
+        terms.insert(0, keyword)
+    return terms
 
 SearchFn = Callable[[str, int], List[Dict[str, str]]]
 
@@ -256,12 +289,17 @@ def _search(keyword: str, limit: int) -> List[Dict[str, str]]:
 
 
 def fetch(
-    keyword: str = "", limit: int = 40, keywords: List[str] | None = None
+    keyword: str = "",
+    limit: int = 40,
+    keywords: List[str] | None = None,
+    task: str = "",
 ) -> List[Dict[str, Any]]:
-    """按分品类关键词多轮搜索并去重，补充本地静态源之外的候选。"""
-    terms: List[str] = list(keywords or DEFAULT_KEYWORDS)
-    if keyword and keyword not in terms:
-        terms.insert(0, keyword)
+    """按任务选定的关键词多轮搜索并去重，补充静态源之外的候选。
+
+    task 传入任务标识（deals / ai_daily / pain_points）以选择对应关键词组；
+    未识别时退回薅羊毛词组。
+    """
+    terms = list(keywords) if keywords else _pick_keywords(task, keyword)
 
     rows: List[Dict[str, Any]] = []
     seen: set[str] = set()

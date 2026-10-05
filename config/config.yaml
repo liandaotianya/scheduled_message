@@ -24,7 +24,11 @@ tasks:
     days: even                    # even=双号 / odd=单号 / special=仅 run_days
     exclude_days: [16, 30]
     min_items: 5                  # 每期最少条数，不达标会在日志里警告
-    search_recent_days: 14        # 搜索时间窗口（天，站点更新慢时保证候选量）
+    # 判定窗口：超过这个天数的活动算过期，提示词据此剔除
+    search_recent_days: 3
+    # 列表过滤窗口：静态源（本地宝）更新慢，抓取时放宽，
+    # 保证候选量；真正的时效判断交给上面的判定窗口
+    source_recent_days: 14
     # 品类优先级：顺序即优先级，越靠前越优先收集
     categories:
       - 亲子体验

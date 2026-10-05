@@ -88,7 +88,7 @@ def run(overrides: Dict[str, Any] | None = None) -> bool:
     log.info("开始执行 %s", title)
 
     # ---- 1. 抓取（重点覆盖吐槽类场景） ----
-    raw_items = fetcher.fetch_all(limit=50, keyword="吐槽 痛点 难用")
+    raw_items = fetcher.fetch_all(limit=50, keyword="吐槽 痛点 难用", task="pain_points")
     if not raw_items:
         log.error("未抓取到任何原始信息，任务中止")
         return False

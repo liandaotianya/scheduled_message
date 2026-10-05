@@ -12,6 +12,8 @@ from dataclasses import dataclass, field, asdict
 from importlib import import_module
 from typing import Any, Dict, List
 
+import inspect
+
 import requests
 
 from . import config as cfg
@@ -203,12 +205,17 @@ def _fetch_html(meta: Dict[str, Any], limit: int) -> List[Item]:
     return items
 
 
-def _fetch_plugin(meta: Dict[str, Any], limit: int, keyword: str = "") -> List[Item]:
+def _fetch_plugin(
+    meta: Dict[str, Any], limit: int, keyword: str = "", task: str = ""
+) -> List[Item]:
     """插件位：动态导入 scripts/core/plugins/<module>.py。
 
     约定插件模块需暴露：
         fetch(keyword: str, limit: int) -> List[dict]
     每个 dict 至少包含 title 与 url。
+
+    task 为调用方任务标识，仅当插件 fetch 支持 task 形参时透传
+    （供搜索类插件按任务切换关键词组）。
     """
     module_name = meta.get("module")
     if not module_name:
@@ -221,7 +228,10 @@ def _fetch_plugin(meta: Dict[str, Any], limit: int, keyword: str = "") -> List[I
             f"插件 {module_name} 未实现，请创建 scripts/core/plugins/{module_name}.py"
         ) from exc
 
-    rows = mod.fetch(keyword=keyword, limit=limit)
+    kwargs: Dict[str, Any] = {"keyword": keyword, "limit": limit}
+    if task and "task" in inspect.signature(mod.fetch).parameters:
+        kwargs["task"] = task
+    rows = mod.fetch(**kwargs)
     return [
         Item(
             title=str(row.get("title", "")).strip(),
@@ -246,7 +256,11 @@ DEFAULT_LIMIT = 30
 # ---------------------------------------------------------------- 对外接口
 
 def fetch_source(
-    name: str, meta: Dict[str, Any], limit: int = DEFAULT_LIMIT, keyword: str = ""
+    name: str,
+    meta: Dict[str, Any],
+    limit: int = DEFAULT_LIMIT,
+    keyword: str = "",
+    task: str = "",
 ) -> List[Item]:
     """抓取单个源，失败返回空列表并记日志。"""
     meta = dict(meta)
@@ -255,7 +269,7 @@ def fetch_source(
 
     try:
         if stype == "plugin":
-            items = _fetch_plugin(meta, limit, keyword)
+            items = _fetch_plugin(meta, limit, keyword, task)
         else:
             fn = _FETCHERS.get(stype)
             if fn is None:
@@ -271,14 +285,17 @@ def fetch_source(
 
 
 def fetch_all(
-    tag: str | None = None, limit: int = DEFAULT_LIMIT, keyword: str = ""
+    tag: str | None = None,
+    limit: int = DEFAULT_LIMIT,
+    keyword: str = "",
+    task: str = "",
 ) -> List[Item]:
     """抓取所有已启用源（可按 tag 过滤），合并去重。"""
     merged: List[Item] = []
     seen: set[str] = set()
 
     for name, meta in cfg.enabled_sources(tag).items():
-        for item in fetch_source(name, meta, limit, keyword):
+        for item in fetch_source(name, meta, limit, keyword, task):
             key = item.url.split("?")[0].rstrip("/")
             if key in seen:
                 continue
@@ -290,7 +307,10 @@ def fetch_all(
 
 
 def fetch_by_tags(
-    tags: List[str], limit: int = DEFAULT_LIMIT, keyword: str = ""
+    tags: List[str],
+    limit: int = DEFAULT_LIMIT,
+    keyword: str = "",
+    task: str = "",
 ) -> List[Item]:
     """只抓与指定标签相关的源，避免无关内容稀释提示词。"""
     wanted = set(tags or [])
@@ -300,7 +320,7 @@ def fetch_by_tags(
     for name, meta in cfg.enabled_sources(None).items():
         if wanted and not (set(meta.get("tags") or []) & wanted):
             continue
-        for item in fetch_source(name, meta, limit, keyword):
+        for item in fetch_source(name, meta, limit, keyword, task):
             key = item.url.split("?")[0].rstrip("/")
             if key in seen:
                 continue

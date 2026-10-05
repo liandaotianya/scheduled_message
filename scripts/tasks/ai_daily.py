@@ -94,7 +94,7 @@ def run(overrides: Dict[str, Any] | None = None) -> bool:
     log.info("开始执行 %s", title)
 
     # ---- 1. 抓取 ----
-    raw_items = fetcher.fetch_all(limit=40)
+    raw_items = fetcher.fetch_all(limit=40, keyword="AI 工具 开源 项目", task="ai_daily")
     if not raw_items:
         log.error("未抓取到任何原始信息，任务中止")
         return False

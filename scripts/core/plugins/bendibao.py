@@ -124,7 +124,7 @@ def fetch(keyword: str = "", limit: int = 15, recent_days: int | None = None) ->
             from core import config as cfg
 
             recent_days = int(
-                cfg.get("tasks.changchun_deals.search_recent_days", 14)
+                cfg.get("tasks.changchun_deals.source_recent_days", 14)
             )
         except Exception:  # noqa: BLE001 - 读不到配置就用默认窗口
             recent_days = 14
