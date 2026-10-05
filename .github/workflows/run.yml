@@ -95,6 +95,7 @@ jobs:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
           SERPER_API_KEY: ${{ secrets.SERPER_API_KEY }}
           BOCHA_API_KEY: ${{ secrets.BOCHA_API_KEY }}
+          SEARXNG_URL: ${{ secrets.SEARXNG_URL }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SLOT: ${{ steps.params.outputs.slot }}
           TASK: ${{ steps.params.outputs.task }}
