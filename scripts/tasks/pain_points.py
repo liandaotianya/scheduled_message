@@ -88,7 +88,14 @@ def run(overrides: Dict[str, Any] | None = None) -> bool:
     log.info("开始执行 %s", title)
 
     # ---- 1. 抓取（重点覆盖吐槽类场景） ----
-    raw_items = fetcher.fetch_all(limit=50, keyword="吐槽 痛点 难用", task="pain_points")
+    # 排除搜索源：实测通用网页搜索搜「吐槽 难用」返回的绝大多数是软文与广告，
+    # 真实用户吐槽集中在社交平台，那是插件位的活（当前未接入），搜索帮不上
+    raw_items = fetcher.fetch_all(
+        limit=50,
+        keyword="吐槽 痛点 难用",
+        task="pain_points",
+        exclude=["联网搜索"],
+    )
     if not raw_items:
         log.error("未抓取到任何原始信息，任务中止")
         return False

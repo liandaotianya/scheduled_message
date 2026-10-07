@@ -94,7 +94,11 @@ def run(overrides: Dict[str, Any] | None = None) -> bool:
     log.info("开始执行 %s", title)
 
     # ---- 1. 抓取 ----
-    raw_items = fetcher.fetch_all(limit=40, keyword="AI 工具 开源 项目", task="ai_daily")
+    # 排除搜索源：实测博查搜「AI 工具 开源」返回的多是盘点/汇总类二手稿，
+    # 反而挤占 GitHub Trending、HackerNews 这类一手源的位置
+    raw_items = fetcher.fetch_all(
+        limit=40, keyword="AI 工具 开源 项目", task="ai_daily", exclude=["联网搜索"]
+    )
     if not raw_items:
         log.error("未抓取到任何原始信息，任务中止")
         return False

@@ -298,12 +298,21 @@ def fetch_all(
     keyword: str = "",
     task: str = "",
     recent_days: int = 0,
+    exclude: List[str] | None = None,
 ) -> List[Item]:
-    """抓取所有已启用源（可按 tag 过滤），合并去重。"""
+    """抓取所有已启用源（可按 tag 过滤），合并去重。
+
+    exclude 传源名列表，用于排除不适合当前任务的源
+    （例：搜索源对 AI 日报 / 痛点快报是负收益，只留给薅羊毛用）。
+    """
     merged: List[Item] = []
     seen: set[str] = set()
+    skip = set(exclude or [])
 
     for name, meta in cfg.enabled_sources(tag).items():
+        if name in skip:
+            log.info("源 %s 按任务配置跳过", name)
+            continue
         for item in fetch_source(name, meta, limit, keyword, task, recent_days):
             key = item.url.split("?")[0].rstrip("/")
             if key in seen:
