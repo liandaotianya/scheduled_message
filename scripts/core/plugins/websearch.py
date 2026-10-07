@@ -20,7 +20,9 @@ from __future__ import annotations
 import json
 import logging
 import os
+import re
 import time
+from datetime import datetime, timedelta
 from typing import Any, Callable, Dict, List
 from urllib.parse import quote
 
@@ -33,6 +35,9 @@ TIMEOUT = 25
 PER_KEYWORD = 10
 # 多次搜索之间的间隔，避免触发限流
 GAP = 2.0
+# 博查侧时间过滤档位：实测 oneDay 过窄（结果跑偏到无关内容），
+# oneWeek 最稳；再由本地按publishDate 做精确天数过滤。
+BOCHA_FRESHNESS = os.environ.get("BOCHA_FRESHNESS", "oneWeek")
 UA = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
     "(KHTML, like Gecko) Chrome/120.0 Safari/537.36"
@@ -90,10 +95,11 @@ SearchFn = Callable[[str, int], List[Dict[str, str]]]
 
 def _search_serper(keyword: str, limit: int) -> List[Dict[str, str]]:
     key = os.environ["SERPER_API_KEY"]
+    body: Dict[str, Any] = {"q": keyword, "gl": "cn", "hl": "zh-cn", "num": limit}
     resp = requests.post(
         "https://google.serper.dev/search",
         headers={"X-API-KEY": key, "Content-Type": "application/json"},
-        json={"q": keyword, "gl": "cn", "hl": "zh-cn", "num": limit},
+        json=body,
         timeout=TIMEOUT,
     )
     resp.raise_for_status()
@@ -104,6 +110,7 @@ def _search_serper(keyword: str, limit: int) -> List[Dict[str, str]]:
                 "title": (hit.get("title") or "").strip(),
                 "url": (hit.get("link") or "").strip(),
                 "summary": (hit.get("snippet") or "").strip(),
+                "date": (hit.get("date") or "")[:10],
             }
         )
     return rows
@@ -111,10 +118,14 @@ def _search_serper(keyword: str, limit: int) -> List[Dict[str, str]]:
 
 def _search_bocha(keyword: str, limit: int) -> List[Dict[str, str]]:
     key = os.environ["BOCHA_API_KEY"]
+    body: Dict[str, Any] = {"query": keyword, "count": min(limit, 10), "summary": True}
+    # freshness 让博查只返回近期结果（实测 oneWeek 有效；自定义日期串会被忽略）
+    if BOCHA_FRESHNESS:
+        body["freshness"] = BOCHA_FRESHNESS
     resp = requests.post(
         "https://api.bochaai.com/v1/web-search",
         headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
-        json={"query": keyword, "count": min(limit, 10), "summary": True},
+        json=body,
         timeout=TIMEOUT,
     )
     resp.raise_for_status()
@@ -126,6 +137,7 @@ def _search_bocha(keyword: str, limit: int) -> List[Dict[str, str]]:
                 "title": (hit.get("name") or "").strip(),
                 "url": (hit.get("url") or "").strip(),
                 "summary": (hit.get("summary") or hit.get("snippet") or "").strip(),
+                "date": (hit.get("publishDate") or "").strip()[:10],
             }
         )
     return rows
@@ -288,21 +300,36 @@ def _search(keyword: str, limit: int) -> List[Dict[str, str]]:
     return []
 
 
+def _recent_enough(date_str: str, days: int) -> bool:
+    """按发布日期过滤。解析不出日期的放行，交给 LLM 判断。"""
+    m = re.match(r"(\d{4})-(\d{1,2})-(\d{1,2})", date_str or "")
+    if not m:
+        return True
+    try:
+        d = datetime(int(m[1]), int(m[2]), int(m[3]))
+    except ValueError:
+        return True
+    return d >= datetime.now() - timedelta(days=days)
+
+
 def fetch(
     keyword: str = "",
     limit: int = 40,
     keywords: List[str] | None = None,
     task: str = "",
+    recent_days: int = 0,
 ) -> List[Dict[str, Any]]:
     """按任务选定的关键词多轮搜索并去重，补充静态源之外的候选。
 
     task 传入任务标识（deals / ai_daily / pain_points）以选择对应关键词组；
     未识别时退回薅羊毛词组。
+    recent_days 大于 0 时按发布日期剔除过期的搜索结果。
     """
     terms = list(keywords) if keywords else _pick_keywords(task, keyword)
 
     rows: List[Dict[str, Any]] = []
     seen: set[str] = set()
+    dropped = 0
     for idx, term in enumerate(terms):
         if idx:
             time.sleep(GAP)
@@ -314,6 +341,9 @@ def fetch(
         for hit in hits:
             if not hit["title"] or not hit["url"].startswith("http"):
                 continue
+            if recent_days and not _recent_enough(hit.get("date", ""), recent_days):
+                dropped += 1
+                continue
             key = hit["url"].split("?")[0].rstrip("/")
             if key in seen:
                 continue
@@ -323,7 +353,12 @@ def fetch(
         if len(rows) >= limit:
             break
 
-    log.info("搜索聚合：%d 个关键词共 %d 条", len(terms), len(rows))
+    log.info(
+        "搜索聚合：%d 个关键词共 %d 条%s",
+        len(terms),
+        len(rows),
+        f"（按 {recent_days} 天窗口剔除过期 {dropped} 条）" if dropped else "",
+    )
     return rows[:limit]
 
 

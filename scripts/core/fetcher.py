@@ -206,7 +206,11 @@ def _fetch_html(meta: Dict[str, Any], limit: int) -> List[Item]:
 
 
 def _fetch_plugin(
-    meta: Dict[str, Any], limit: int, keyword: str = "", task: str = ""
+    meta: Dict[str, Any],
+    limit: int,
+    keyword: str = "",
+    task: str = "",
+    recent_days: int = 0,
 ) -> List[Item]:
     """插件位：动态导入 scripts/core/plugins/<module>.py。
 
@@ -214,8 +218,8 @@ def _fetch_plugin(
         fetch(keyword: str, limit: int) -> List[dict]
     每个 dict 至少包含 title 与 url。
 
-    task 为调用方任务标识，仅当插件 fetch 支持 task 形参时透传
-    （供搜索类插件按任务切换关键词组）。
+    task / recent_days 为可选透传参数，仅当插件 fetch 声明了对应形参时才传
+    （供搜索类插件按任务切换关键词组、按窗口剔除过期结果）。
     """
     module_name = meta.get("module")
     if not module_name:
@@ -229,8 +233,11 @@ def _fetch_plugin(
         ) from exc
 
     kwargs: Dict[str, Any] = {"keyword": keyword, "limit": limit}
-    if task and "task" in inspect.signature(mod.fetch).parameters:
+    params = inspect.signature(mod.fetch).parameters
+    if task and "task" in params:
         kwargs["task"] = task
+    if recent_days and "recent_days" in params:
+        kwargs["recent_days"] = recent_days
     rows = mod.fetch(**kwargs)
     return [
         Item(
@@ -261,6 +268,7 @@ def fetch_source(
     limit: int = DEFAULT_LIMIT,
     keyword: str = "",
     task: str = "",
+    recent_days: int = 0,
 ) -> List[Item]:
     """抓取单个源，失败返回空列表并记日志。"""
     meta = dict(meta)
@@ -269,7 +277,7 @@ def fetch_source(
 
     try:
         if stype == "plugin":
-            items = _fetch_plugin(meta, limit, keyword, task)
+            items = _fetch_plugin(meta, limit, keyword, task, recent_days)
         else:
             fn = _FETCHERS.get(stype)
             if fn is None:
@@ -289,13 +297,14 @@ def fetch_all(
     limit: int = DEFAULT_LIMIT,
     keyword: str = "",
     task: str = "",
+    recent_days: int = 0,
 ) -> List[Item]:
     """抓取所有已启用源（可按 tag 过滤），合并去重。"""
     merged: List[Item] = []
     seen: set[str] = set()
 
     for name, meta in cfg.enabled_sources(tag).items():
-        for item in fetch_source(name, meta, limit, keyword, task):
+        for item in fetch_source(name, meta, limit, keyword, task, recent_days):
             key = item.url.split("?")[0].rstrip("/")
             if key in seen:
                 continue
@@ -311,6 +320,7 @@ def fetch_by_tags(
     limit: int = DEFAULT_LIMIT,
     keyword: str = "",
     task: str = "",
+    recent_days: int = 0,
 ) -> List[Item]:
     """只抓与指定标签相关的源，避免无关内容稀释提示词。"""
     wanted = set(tags or [])
@@ -320,7 +330,7 @@ def fetch_by_tags(
     for name, meta in cfg.enabled_sources(None).items():
         if wanted and not (set(meta.get("tags") or []) & wanted):
             continue
-        for item in fetch_source(name, meta, limit, keyword, task):
+        for item in fetch_source(name, meta, limit, keyword, task, recent_days):
             key = item.url.split("?")[0].rstrip("/")
             if key in seen:
                 continue

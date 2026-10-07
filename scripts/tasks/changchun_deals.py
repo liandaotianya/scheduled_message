@@ -131,7 +131,11 @@ def run(overrides: Dict[str, Any] | None = None) -> bool:
 
     # ---- 2. 抓取（只取本地相关源，避免无关资讯稀释筛选）----
     raw_items = fetcher.fetch_by_tags(
-        categories, limit=30, keyword="长春 优惠 活动", task="deals"
+        categories,
+        limit=30,
+        keyword="长春 优惠 活动",
+        task="deals",
+        recent_days=recent_days,
     )
 
     # 空结果时给一个说得过去的解释，而不是静默不发信
