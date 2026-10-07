@@ -88,8 +88,9 @@ check('往返后 categories 不变',
   JSON.stringify(cfg.tasks.changchun_deals.categories));
 check('往返后 time_slot 仍是字符串',
   reparsed.tasks.ai_daily.time_slot === '17:03');
-check('往返后 items_per_category = 8',
-  reparsed.tasks.ai_daily.items_per_category === 8);
+check('往返后 items_per_category 与配置一致',
+  reparsed.tasks.ai_daily.items_per_category === cfg.tasks.ai_daily.items_per_category,
+  String(cfg.tasks.ai_daily.items_per_category));
 check('往返后 llm.models 完整',
   reparsed.llm.models.gemini === 'gemini-3.5-flash-lite' &&
   reparsed.llm.models.deepseek === 'deepseek-chat');

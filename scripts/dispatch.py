@@ -22,7 +22,7 @@ from __future__ import annotations
 import argparse
 import logging
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -140,17 +140,31 @@ def main() -> int:
     else:
         targets = resolve(when, args.slot)
 
-    # 定时触发防重发：GitHub 定时偶发延迟数小时，可能把两次触发挤到一起执行。
-    # 仅对定时槽位生效（带 --slot 且未强制指定任务），手动触发不受限。
-    if args.slot and not args.task and not args.force:
+    # 防重发：GitHub 定时偶发延迟数小时，可能把两次触发挤到一起执行。
+    # 手动用 --task / --force 显式指定任务时不受限，便于调试重跑。
+    # 注意定时触发不传 --slot，判断依据是「既没指定任务也没 force」。
+    if not args.task and not args.force:
         sent = _load_sent(when)
         skipped = [t for t in targets if t in sent]
         if skipped:
-            log.info("定时防重发：今天已发送过 %s，本次跳过", ", ".join(skipped))
+            log.info("防重发：今天已发送过 %s，本次跳过", ", ".join(skipped))
         targets = [t for t in targets if t not in sent]
 
     if not targets:
-        log.info("今天此刻没有需要执行的任务，正常退出")
+        log.info(
+            "今天（%s）没有需要执行的任务%s，正常退出",
+            when.strftime("%Y-%m-%d"),
+            "（或今天已全部发送过）" if not args.task and not args.force else "",
+        )
+        if not args.task and not args.force:
+            # 手动按日期判断时，明确告知下一天该跑什么，避免"点了没反应"的困惑
+            nxt = when + timedelta(days=1)
+            upcoming = [t for t in ALL_TASKS if day_matches(t, nxt)]
+            log.info(
+                "提示：%s 将执行 %s；如需立即执行，请在任务列表里明确选择。",
+                nxt.strftime("%Y-%m-%d"),
+                "、".join(upcoming) if upcoming else "（次日也无）",
+            )
         return 0
 
     log.info("本次将执行: %s", ", ".join(targets))

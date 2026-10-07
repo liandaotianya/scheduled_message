@@ -46,7 +46,7 @@ tasks:
     time_slot: "17:03"
     days: odd
     exclude_days: [7, 23]
-    items_per_category: 8         # 每个分类的条数
+    items_per_category: 10        # 每个分类的条数
     archive: true                 # 是否存档到 data/archive/
     categories:
       - 提高开发效率的工具

@@ -21,7 +21,7 @@ const TASK_META = {
     label: 'AI 日报',
     slot: '17:03',
     rule: '每月单号（排除 7/23 号）',
-    desc: '5 个分类各 8 条，聚焦赚钱与落地',
+    desc: '5 个分类各 10 条，聚焦赚钱与落地',
   },
   pain_points: {
     label: '用户痛点快报',
